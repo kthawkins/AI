@@ -1,4 +1,4 @@
-# Agentic AI with Node.js
+# addTool for Email Node.js
 
 This code is a series of API tool definitions for interacting with Gmail through the Gmail API. Here's a breakdown of what each part does:
 
