@@ -20,7 +20,43 @@ const oAuth2Client = new google.auth.OAuth2(
 }
 
 
+async function listRecentEmails({ maxResults = 5 }) {
+  try {
+    const email = globalThis.currentEmail;
+    const gmail = getGmailClient(email);
+    const res = await gmail.users.messages.list({
+      userId: 'me',
+      maxResults,
+    });
 
+    const messages = res.data.messages || [];
+
+    const results = await Promise.all(messages.map(async (msg) => {
+      const fullMsg = await gmail.users.messages.get({
+        userId: 'me',
+        id: msg.id || "",
+        format: 'metadata',
+        metadataHeaders: ['Subject', 'From', 'Date'],
+      });
+
+      const headers = fullMsg.data.payload?.headers || [];
+      const getHeader = (name) =>
+        headers.find(h => h.name?.toLowerCase() === name.toLowerCase())?.value || "";
+
+      return {
+        id: msg.id,
+        subject: getHeader('Subject'),
+        from: getHeader('From'),
+        date: getHeader('Date'),
+      };
+    }));
+
+    return results;
+  } catch (err) {
+    console.error('Gmail API error:', err);
+    return { error: "Failed to fetch emails." };
+  }
+}
 
 realtimeClient.addTool(
     {
